@@ -51,6 +51,54 @@
         }
     };
 
+    // debug implementation for googletag library
+    var debugGoogletag = {
+        cmd: {
+            push: function (callback) {
+                // window.console.log('googletag.push');
+                callback.call(dfpScript);
+            }
+        },
+        ads: [],
+        pubads: function () { return this; },
+        enableSingleRequest: function () { return this; },
+        setTargeting: function () { return this; },
+        collapseEmptyDivs: function () { return this; },
+        enableServices: function () { return this; },
+        defineSlot: function (name, dimensions, id) {
+            window.console.log('googletag.defineSlot(' + name + ', ' + dimensions + ', ' + id + ')');
+            window.googletag.ads.push(id);
+            window.googletag.ads[id] = {
+                renderEnded: function () {},
+                addService: function () { return this; }
+            };
+            return window.googletag.ads[id];
+        },
+        display: function (id) {
+            window.console.log('googletag.display(' + id + ')');
+            window.googletag.ads[id].renderEnded.call(dfpScript);
+            var $elem = $('#' + id),
+                name = getName($elem[0]),
+                dim = getDimensions($elem);
+            $('<div class="adunit-debug" ' +
+                'style="border: 0; font-size: 0.9em; margin:0; overflow: hidden; padding: 0; text-align: center; text-overflow: ellipses;">')
+                .css({
+                    background: 'deeppink',
+                    color: 'black',
+                    lineHeight: dim.height + 'px'
+                })
+                .width(dim.width).height(dim.height)
+                .text(name)
+                .appendTo($elem);
+            return this;
+        }
+    };
+
+    var googletags = {
+        dummy: dummyGoogletag,
+        debug: debugGoogletag
+    };
+
     /**
      * Init function sets required params and loads Google's DFP script
      * @param  String id       The DFP account ID
@@ -62,7 +110,17 @@
         dfpID = id || dfpID;
         dfpSelector = selector || dfpSelector;
         options = options || {};
-        dfpLoader();
+        if (options.googletag){
+            if (typeof options.googletag === 'object'){
+                window.googletag = options.googletag;
+            } else if (googletags[options.googletag]){
+                window.googletag = googletags[options.googletag];
+            } else {
+                window.console.alert("Invalid googletag library called");
+            }
+        } else {
+            dfpLoader();
+        }
         $(function () { createAds(options); });
 
     };
