@@ -75,6 +75,7 @@
             setCategoryExclusion: '',
             setLocation: '',
             enableSingleRequest: true,
+            enableVideoAds: false,
             collapseEmptyDivs: 'original',
             refreshExisting: true,
             disablePublisherConsole: false,
@@ -200,6 +201,10 @@
 
             if (dfpOptions.enableSingleRequest) {
                 window.googletag.pubads().enableSingleRequest();
+            }
+            if (dfpOptions.enableVideoAds) {
+                // https://developers.google.com/doubleclick-gpt/reference?rd=1#googletag.PubAdsService_enableVideoAds
+                window.googletag.pubads().enableVideoAds();
             }
             $.each(dfpOptions.setTargeting, function (k, v) {
                 window.googletag.pubads().setTargeting(k, v);
